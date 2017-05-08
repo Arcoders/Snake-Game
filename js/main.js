@@ -1,6 +1,6 @@
 ;(function(){
 
-// -----------------------------------------------------
+// --------------------------------------------------
 
     class Random {
 
@@ -18,7 +18,7 @@
 
     }
 
-// -----------------------------------------------------
+// --------------------------------------------------
 
     class Food {
 
@@ -37,7 +37,7 @@
             let color = Random.color_food();
             ctx.save();
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.width / 2, 2 * Math.PI, false);
+            ctx.arc(this.x, this.y, this.width / 2, Math.PI * 2, false);
             ctx.shadowInset = true;
             ctx.shadowBlur = Random.get(5, 10);
             ctx.shadowColor = color;
@@ -48,7 +48,7 @@
 
     }
 
-// -----------------------------------------------------
+// --------------------------------------------------
 
     class Square {
 
@@ -62,7 +62,7 @@
 
         draw() {
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.width / 2, 2 * Math.PI, false);
+            ctx.arc(this.x, this.y, this.width / 2, Math.PI * 2, false);
             ctx.fill();
             ctx.lineWidth = 1;
             ctx.strokeStyle = 'Gold';
@@ -110,10 +110,11 @@
         }
 
         hitBorder() {
-            return this.x > canvas.width || this.x < 0 || this.y > canvas.height || this.y < 0;
+            return this.x > canvas.width - this.width || this.x < 0 ||
+                   this.y > canvas.height - this.height || this.y < 0;
         }
 
-        squareHit(head, body) {
+        squareHit(body, head) {
             return head.x == body.x && head.y == body.y;
         }
 
@@ -125,7 +126,7 @@
             if (second && !this.hasBack()) return false;
             if (second) return this.back.hit_body(head);
 
-            if (this.hasBack()) return this.squareHit(head, this) || this.back.hit_body(head);
+            if (this.hasBack()) return this.squareHit(this, head) || this.back.hit_body(head);
 
             return this.squareHit(this, head);
 
@@ -134,11 +135,11 @@
         grid() {
 
             for (let x = 0; x <= canvas.width; x += this.width) {
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, canvas.height);
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
             }
 
-            for (let y = 0; y <= canvas.height; y += this.width) {
+            for (let y = 0; y <= canvas.height; y += this.height) {
                 ctx.moveTo(0, y);
                 ctx.lineTo(canvas.width, y);
             }
@@ -149,17 +150,17 @@
 
         }
 
-
     }
 
-// -----------------------------------------------------
+// --------------------------------------------------
 
     class Snake {
 
         constructor() {
             this.head = new Square(200, 30);
             this.draw();
-            this.direction = 'right';
+            this.direction = 'down';
+            this.head.add();
             this.head.add();
             this.head.add();
             this.head.add();
@@ -190,10 +191,10 @@
         }
 
         move() {
-            if (this.direction === 'up') return this.head.up();
+            if (this.direction === 'right') return this.head.right();
             if (this.direction === 'down') return this.head.down();
             if (this.direction === 'left') return this.head.left();
-            if (this.direction === 'right') return this.head.right();
+            if (this.direction === 'up') return this.head.up();
         }
 
         eat() {
@@ -206,7 +207,7 @@
 
     }
 
-// -----------------------------------------------------
+// --------------------------------------------------
 
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
@@ -216,16 +217,16 @@
 
     let foods = [];
 
-    window.addEventListener('keydown', event => {
+    window.addEventListener('keydown', (event) => {
         event.preventDefault();
-        if (event.keyCode === 40) return snake.down();
-        if (event.keyCode === 39) return snake.right();
-        if (event.keyCode === 38) return snake.up();
-        if (event.keyCode === 37) return snake.left();
+            if (event.keyCode === 40) return snake.down();
+            if (event.keyCode === 39) return snake.right();
+            if (event.keyCode === 38) return snake.up();
+            if (event.keyCode === 37) return snake.left();
         return false;
     });
 
-    const loop_draw = setInterval(() => {
+const loop_draw  =  setInterval(() => {
 
         snake.move();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -234,14 +235,14 @@
         drawFood();
 
         if (snake.dead()) {
-            console.log('Has muerto .................... :/');
+            console.log('Has muerto .............. :/');
             window.clearInterval(loop_food);
             window.clearInterval(loop_draw);
         }
 
     }, 1000 / 15);
 
-    const loop_food = setInterval(() => {
+const loop_food  =  setInterval(() => {
 
         const food = Food.generate();
         foods.push(food);
@@ -254,15 +255,19 @@
 
     function drawFood() {
         for (const i in foods) {
+
             const food = foods[i];
+
             if (typeof food !== 'undefined') {
                 food.draw();
+
                 if (hit(food, snake.head)) {
                     removeFromFoods(food);
-                    console.log('Más 10 puntos ..... ^^');
+                    console.log('Más 10 puntos .... ^^');
                     snake.eat();
                 }
             }
+
         }
     }
 
@@ -284,6 +289,7 @@
         return hit;
     }
 
-// -----------------------------------------------------
+
+// --------------------------------------------------
 
 })();
